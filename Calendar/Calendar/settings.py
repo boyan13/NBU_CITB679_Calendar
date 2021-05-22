@@ -124,3 +124,14 @@ STATIC_URL = '/static/'
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# BOYAN:
+# TODO:
+#  These redirects are tempo, change them when we have a calendar template.
+LOGIN_REDIRECT_URL = "dashboard"
+LOGOUT_REDIRECT_URL = "dashboard"
+
+# To run a mail server simulation (mails get discarded and printed in the terminal), use this:
+# python -m smtpd -n -c DebuggingServer localhost:1025
+EMAIL_HOST = "localhost"
+EMAIL_PORT = 1025
