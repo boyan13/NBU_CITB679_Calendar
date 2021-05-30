@@ -34,6 +34,7 @@ ALLOWED_HOSTS = []
 
 INSTALLED_APPS = [
     'users',
+    'social_django',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -65,6 +66,8 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'social_django.context_processors.backends',
+                'social_django.context_processors.login_redirect',
             ],
         },
     },
@@ -109,6 +112,10 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+AUTHENTICATION_BACKENDS = [
+    "django.contrib.auth.backends.ModelBackend",  # default backend for user management
+    "social_core.backends.github.GithubOAuth2",
+]
 
 # Internationalization
 # https://docs.djangoproject.com/en/3.2/topics/i18n/
@@ -134,6 +141,10 @@ STATIC_URL = '/static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+# +--------------------------------------------------------------------------------------------------------------------+
+# | Custom Settings                                                                                                    |
+# +--------------------------------------------------------------------------------------------------------------------+
+
 # BOYAN:
 # TODO:
 #  These redirects are tempo, change them when we have a calendar template.
@@ -144,3 +155,10 @@ LOGOUT_REDIRECT_URL = "dashboard"
 # python -m smtpd -n -c DebuggingServer localhost:1025
 EMAIL_HOST = "localhost"
 EMAIL_PORT = 1025
+
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+
+# social-django-oauth stuff
+# ------------------------------
+SOCIAL_AUTH_GITHUB_KEY = os.getenv("SOCIAL_AUTH_GITHUB_KEY")
+SOCIAL_AUTH_GITHUB_SECRET = os.getenv("SOCIAL_AUTH_GITHUB_SECRET")
