@@ -1,0 +1,183 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary justify-content-between">
+  <a class="navbar-brand" href="#">Navbar</a>
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+  <div class="collapse navbar-collapse justify-content-end" id="navbarNavDropdown">
+    <ul class="navbar-nav">
+        {% if user.is_authenticated %}
+            <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                {{ user.username|default:'Guest' }}!
+                </a>
+                <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdownMenuLink">
+                <a href="{% url 'password_change' %}" class="dropdown-item" href="#">Change password</a>
+                <a href="{% url 'logout' %}" class="dropdown-item" href="#">Logout</a>
+                </div>
+            </li>
+        {% else %}
+            <li class="nav-item active">
+                <a  class="nav-link" href="{% url 'login' %}">Login</a>
+            </li>
+        {% endif %}
+    </ul>
+  </div>
+</nav>
+
+<div class="container mt-3">
+   <div class="row h-100">
+        <div class="col-md-2">
+            <div class="form-group">
+                <input type="text" class="form-control" id="eventName" placeholder="Event Name">
+            </div>
+            <button type="button" id="addEventBtn" class="btn btn-primary">
+                Add Event
+            </button>
+            <div id="mydraggable" class="mt-3">
+                
+            </div>
+        </div>
+        <div class="col-md-10">
+            <div id="calendar"></div>
+        </div>
+   </div>
+</div>
+
+
+<script>
+
+    document.addEventListener('DOMContentLoaded', function() {
+        let calendarEl = document.getElementById('calendar');
+        let calendar = new FullCalendar.Calendar(calendarEl, {
+            headerToolbar: {
+                start: 'prev,next,today', 
+                center: 'title',
+                end: 'dayGridMonth,timeGridWeek,timeGridDay' // will normally be on the right. if RTL, will be on the left
+            },
+            initialView: 'dayGridMonth',
+            height: '80%',
+            themeSystem: 'bootstrap',
+            nowIndicator: true,
+            events: [
+                {
+                    id: 'a',
+                    title: 'my event',
+                    start: '2021-06-09T10:00:00',
+                    end: '2021-06-09T16:00:00',
+                },{
+                    id: 'a',
+                    title: 'my event',
+                    start: '2021-06-09T10:00:00',
+                    end: '2021-06-09T16:00:00',
+                },{
+                    id: 'a',
+                    title: 'my event',
+                    start: '2021-06-09T10:00:00',
+                    end: '2021-06-09T16:00:00',
+                },{
+                    id: 'a',
+                    title: 'my event',
+                    start: '2021-06-09T10:00:00',
+                    end: '2021-06-09T16:00:00',
+                },{
+                    id: 'a',
+                    title: 'my event',
+                    start: '2021-06-09T10:00:00',
+                    end: '2021-06-09T16:00:00',
+                },
+                {
+                    start: '2021-06-07',
+                    display: 'background'
+                }
+            ],
+            /*events: {
+                url: 'POST URL',
+                method: 'POST',
+                extraParams: {
+                    email: 'test@test.com'
+                },
+                failure: function() {
+                    alert('There was an error while fetching events!');
+                },
+            },*/
+            editable: true,
+            droppable: true,
+            views: {
+                timeGrid: {
+                    dayMaxEventRows: 3,
+                    eventMaxStack: 3
+                },
+                dayGridMonth: {
+                    dayMaxEventRows: 3,
+                }
+            },
+            drop: function(info){
+                info.draggedEl.parentNode.removeChild(info.draggedEl);
+                let eventObject = {
+                    title: info.draggedEl.children[0].textContent,
+                    start: info.dateStr
+                };
+                console.log(info);
+                console.log(eventObject);
+                
+                /*$.ajax({
+                    url: 'POST URL',
+                    type: 'POST',
+                    data: {
+                        event: eventObject,
+                    },
+                    dataType: 'json',
+                    success: function(result) {
+                       console.log.log(result)
+                    },
+                    error: function() {
+                        alert('There was an error while addeing event!');
+                    },
+                    
+                });*/
+            },
+            eventResize: function(eventResizeInfo){
+                console.log(eventResizeInfo);
+            },
+            eventDrop: function(info){
+                console.log(info);
+            },
+            dateClick: function(dateClickInfo){
+                console.log(dateClickInfo);
+            }
+
+        });
+        calendar.render();
+
+        let draggableEl = document.getElementById('mydraggable');
+
+        new FullCalendar.Draggable(draggableEl, {
+            itemSelector: '.fc-event',
+            eventData: function(eventEl) {
+                return {
+                    title: eventEl.innerText
+                };
+            }
+        });
+
+        $('#addEventBtn').click(() => {
+            let eventName = $('#eventName').val();
+            if(eventName != ''){
+                let html = `
+                <div class='fc-event fc-h-event fc-daygrid-event fc-daygrid-block-event mt-1 pl-1'>
+                    <div class='fc-event-main'>${eventName}</div>
+                </div>`;
+                $('#mydraggable').append(html);
+            }
+            
+        })
+
+    });
+    
+    
+</script>
+{% endblock %}

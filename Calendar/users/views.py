@@ -2,11 +2,6 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import login
 from django.urls import reverse
 from .forms import UserCreationFormWithEmail
-from django.contrib.auth.decorators import login_required
-
-@login_required(login_url='accounts/login/')
-def dashboard(request):
-    return render(request, "users/dashboard.html")
 
 
 def register(request):
@@ -26,7 +21,7 @@ def register(request):
         if form.is_valid():
             user = form.save()
             login(request, user)
-            return redirect(reverse("dashboard"))
+            return redirect(reverse("calendar"))
         else:
             print(form.errors)
             return render(

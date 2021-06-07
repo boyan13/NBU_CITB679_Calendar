@@ -58,7 +58,7 @@ ROOT_URLCONF = 'Calendar.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': ['calendar_main/templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -148,8 +148,8 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # BOYAN:
 # TODO:
 #  These redirects are tempo, change them when we have a calendar template.
-LOGIN_REDIRECT_URL = "dashboard"
-LOGOUT_REDIRECT_URL = "dashboard"
+LOGIN_REDIRECT_URL = "calendar"
+LOGOUT_REDIRECT_URL = "calendar"
 
 # To run a mail server simulation (mails get discarded and printed in the terminal), use this:
 # python -m smtpd -n -c DebuggingServer localhost:1025

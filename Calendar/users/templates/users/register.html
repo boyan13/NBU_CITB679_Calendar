@@ -3,19 +3,22 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="container d-flex flex-column justify-content-center align-items-center">
+<div class="container d-flex flex-column h-100 justify-content-center align-items-center">
     <h2 class="text-primary display-4">Register</h2>
 
     <form method="post" class="w-100 d-flex flex-column align-items-center">
         {% csrf_token %}
+        
         <div class="form-group">
             <label for="{{form.username.id_for_label}}">{{form.username.label}}</label>
             <input type="text" maxlength="150" autofocus name="username" class="form-control" id="{{form.username.id_for_label}}">
         </div>
+        <span class="text-danger ml-5">{{ form.errors.username }}</span>
         <div class="form-group">
             <label for="{{form.email.id_for_label}}" class="text-secondary">{{form.email.label}}</label>
             <input type="email" name="email" class="form-control" id="{{form.email.id_for_label}}">
         </div>
+        <span class="text-danger ml-5">{{ form.errors.email }}</span>
         <div class="form-group">
             <label for="{{form.password1.id_for_label}}">{{form.password1.label}}</label>
             <input type="password" name="password1" class="form-control" id="{{form.password1.id_for_label}}">
@@ -24,7 +27,7 @@
             <label for="{{form.password2.id_for_label}}">{{form.password2.label}}</label>
             <input type="password" name="password2" class="form-control" id="{{form.password2.id_for_label}}">
         </div>
-        {{form}}
+        <span class="text-danger ml-5">{{ form.errors.password2 }}</span>
         <input type="submit" class="btn btn-primary" value="Register">
     </form>
 
