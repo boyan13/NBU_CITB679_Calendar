@@ -56,6 +56,19 @@
 
     document.addEventListener('DOMContentLoaded', function() {
         let calendarEl = document.getElementById('calendar');
+        let eventsList = []
+
+        {% for event in calendar_events%}
+            eventsList.push(
+                {
+                    id: "{{event.id}}",
+                    title: "{{event.title}}"
+                }
+            )
+        {%endfor%}
+
+        console.log(eventsList)
+
         let calendar = new FullCalendar.Calendar(calendarEl, {
             headerToolbar: {
                 start: 'prev,next,today', 
@@ -66,7 +79,7 @@
             height: '80%',
             themeSystem: 'bootstrap',
             nowIndicator: true,
-            events: {{ calendar_events }},
+            events: eventsList,
             editable: true,
             droppable: true,
             views: {
