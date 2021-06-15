@@ -1,6 +1,7 @@
 from django.urls import path, include
-from .views import calendar
+from . import views
 
 urlpatterns = [
-    path('', calendar, name='calendar'),
+    path('', views.calendar, name='calendar'),
+    path('create/', views.create, name="create")
 ]

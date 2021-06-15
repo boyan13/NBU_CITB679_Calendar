@@ -33,6 +33,7 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    'calendar_main',
     'users',
     'social_django',
     'django.contrib.admin',

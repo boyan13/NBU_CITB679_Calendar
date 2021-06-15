@@ -3,6 +3,7 @@
 {% block content %}
 
 <nav class="navbar navbar-expand-lg navbar-dark bg-primary justify-content-between">
+ {% csrf_token %}
   <a class="navbar-brand" href="#">Navbar</a>
   <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
     <span class="navbar-toggler-icon"></span>
@@ -42,6 +43,9 @@
             </div>
         </div>
         <div class="col-md-10">
+            <button type="button" id="saveEventBtn" class="btn btn-primary">
+                Save
+            </button>
             <div id="calendar"></div>
         </div>
    </div>
@@ -62,48 +66,7 @@
             height: '80%',
             themeSystem: 'bootstrap',
             nowIndicator: true,
-            events: [
-                {
-                    id: 'a',
-                    title: 'my event',
-                    start: '2021-06-09T10:00:00',
-                    end: '2021-06-09T16:00:00',
-                },{
-                    id: 'a',
-                    title: 'my event',
-                    start: '2021-06-09T10:00:00',
-                    end: '2021-06-09T16:00:00',
-                },{
-                    id: 'a',
-                    title: 'my event',
-                    start: '2021-06-09T10:00:00',
-                    end: '2021-06-09T16:00:00',
-                },{
-                    id: 'a',
-                    title: 'my event',
-                    start: '2021-06-09T10:00:00',
-                    end: '2021-06-09T16:00:00',
-                },{
-                    id: 'a',
-                    title: 'my event',
-                    start: '2021-06-09T10:00:00',
-                    end: '2021-06-09T16:00:00',
-                },
-                {
-                    start: '2021-06-07',
-                    display: 'background'
-                }
-            ],
-            /*events: {
-                url: 'POST URL',
-                method: 'POST',
-                extraParams: {
-                    email: 'test@test.com'
-                },
-                failure: function() {
-                    alert('There was an error while fetching events!');
-                },
-            },*/
+            events: {{ calendar_events }},
             editable: true,
             droppable: true,
             views: {
@@ -151,6 +114,7 @@
             }
 
         });
+
         calendar.render();
 
         let draggableEl = document.getElementById('mydraggable');
@@ -174,6 +138,27 @@
                 $('#mydraggable').append(html);
             }
             
+        })
+
+        $('#saveEventBtn').click(() => {     
+            let eventObjects = calendar.getEvents().map(e=> e._def)
+
+            $.ajax({
+                    url: '/create/',
+                    type: 'POST',
+                    data: JSON.stringify({
+                        events: eventObjects
+                    }),
+                    contentType: 'application/json; charset=utf-8',
+                    dataType: 'json',
+                    success: function(result) {
+                       console.log(result)
+                    },
+                    error: function() {
+                        alert('There was an error while addeing event!');
+                    },
+                    
+                });           
         })
 
     });
