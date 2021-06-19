@@ -11,6 +11,7 @@ from django.views.decorators.csrf import csrf_exempt
 
 from . import models
 from django.core import serializers
+from datetime import datetime
 
 def calendar(request: WSGIRequest):
     context = {'calendar_events': []}
@@ -22,30 +23,37 @@ def calendar(request: WSGIRequest):
         for event in events:
             calendar_events.append({
                 "id": event.pk,
-                "title": event.title
+                "title": event.title,
+                "start": event.start_date.isoformat(),
+                "end" : event.end_date.isoformat() if not None else None,
+                "allDay" : True if (event.end_date is None) else False
             })
         context["calendar_events"] = calendar_events
 
     return render(request, "calendar.html", context)
 
 @csrf_exempt
-def create(request: WSGIRequest):
+def save(request: WSGIRequest):
     response = {'isSuccessful': False}
 
     if request.method == "POST":
         req_body = json.loads(request.body)
         try:
-            events = []
+            eventsForUpdate = []
+            eventsForCreate = []
             for event in req_body["events"]:
-                events.append(models.Event(
-                    created_by=request.user.id,
-                    title=event['title'],
-                    day_of_week=5,
-                    start_time=event['title'],
-                    end_time=event['title'],
-                    for_date=event['title']
-                ))
+                    eventModel = models.Event(
+                        title=event["title"]
+                    )
 
+                    if not event["publicId"] :
+                        eventsForCreate.append(eventModel)
+                    else:
+                        eventModel.id = event["publicId"]
+                        eventsForUpdate.append(eventModel)
+
+            models.Event.objects.bulk_update(eventsForUpdate)
+            models.Event.objects.bulk_create(eventsForCreate)
         except Exception as exc:
             # Print exception in terminal (since we have no logging)
             traceback.format_exc(exc)
@@ -55,7 +63,3 @@ def create(request: WSGIRequest):
             return JsonResponse(response)
 
     return JsonResponse({})
-
-
-def update(request):
-    return
