@@ -94,41 +94,6 @@
                     dayMaxEventRows: 3,
                 }
             },
-            drop: function(info){
-                info.draggedEl.parentNode.removeChild(info.draggedEl);
-                let eventObject = {
-                    title: info.draggedEl.children[0].textContent,
-                    start: info.dateStr
-                };
-                console.log(info);
-                console.log(eventObject);
-                
-                /*$.ajax({
-                    url: 'POST URL',
-                    type: 'POST',
-                    data: {
-                        event: eventObject,
-                    },
-                    dataType: 'json',
-                    success: function(result) {
-                       console.log.log(result)
-                    },
-                    error: function() {
-                        alert('There was an error while addeing event!');
-                    },
-                    
-                });*/
-            },
-            eventResize: function(eventResizeInfo){
-                console.log(eventResizeInfo);
-            },
-            eventDrop: function(info){
-                console.log(info);
-            },
-            dateClick: function(dateClickInfo){
-                console.log(dateClickInfo);
-            }
-
         });
 
         calendar.render();
@@ -139,7 +104,7 @@
             itemSelector: '.fc-event',
             eventData: function(eventEl) {
                 let event ={
-                    title: eventEl.innerText
+                    title: eventEl.innerText,
                 };
                 return event;
             }
@@ -158,7 +123,17 @@
         })
 
         $('#saveEventBtn').click(() => {     
-            let eventObjects = calendar.getEvents().map(e=> e._def)
+            let eventObjects = calendar.getEvents().map(e=> {
+                let event = {
+                    id: e.id,
+                    start: e.startStr,
+                    end: e.endStr,
+                    title: e.title,
+                    allDay: e.allDay
+                }
+                return event;
+            })
+
             console.log(eventObjects);
 
             $.ajax({
@@ -176,7 +151,7 @@
                         alert('There was an error while adding event!');
                     },
                     
-                });           
+                });         
         })
 
     });
