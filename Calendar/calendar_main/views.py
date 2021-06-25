@@ -25,7 +25,7 @@ def calendar(request: WSGIRequest):
                 "id": event.pk,
                 "title": event.title,
                 "start": event.start_date.isoformat(),
-                "end" : event.end_date.isoformat() if not None else None,
+                "end" : event.end_date.isoformat() if (event.end_date is not None) else None,
                 "allDay" : True if (event.end_date is None) else False
             })
         context["calendar_events"] = calendar_events
@@ -41,18 +41,23 @@ def save(request: WSGIRequest):
         try:
             eventsForUpdate = []
             eventsForCreate = []
+
             for event in req_body["events"]:
                     eventModel = models.Event(
-                        title=event["title"]
+                        title=event["title"],
+                        start_date=event["start"],
+                        end_date= None if (event["allDay"] is True) else event["end"],
+                        created_by = request.user,
+                        created_on=datetime.utcnow()
                     )
 
-                    if not event["publicId"] :
+                    if not event["id"]:
                         eventsForCreate.append(eventModel)
                     else:
-                        eventModel.id = event["publicId"]
+                        eventModel.pk = event["id"]
                         eventsForUpdate.append(eventModel)
 
-            models.Event.objects.bulk_update(eventsForUpdate)
+            models.Event.objects.bulk_update(eventsForUpdate, ['title', 'start_date', 'end_date'])
             models.Event.objects.bulk_create(eventsForCreate)
         except Exception as exc:
             # Print exception in terminal (since we have no logging)
