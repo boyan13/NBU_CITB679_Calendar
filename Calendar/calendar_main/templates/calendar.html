@@ -43,9 +43,11 @@
             </div>
         </div>
         <div class="col-md-10">
+            {% if user.is_authenticated %}
             <button type="button" id="saveEventBtn" class="btn btn-primary mb-2 ">
                 Save
             </button>
+            {% endif %}
             <div id="calendar"></div>
         </div>
    </div>
@@ -163,37 +165,73 @@
 
         function eventEditModal(event){
 
-            let html = `
-                <div class="modal" id="editEventModal" tabindex="-1" role="dialog">
-                    <div class="modal-dialog" role="document">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <button type="button" id="deleteEvent" class="btn btn-outline-danger mr-2" data-toggle="tooltip" data-placement="top" title="Delete Event">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                                <h5 class="modal-title">Edit Event</h5>
-                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                    <span aria-hidden="true">&times;</span>
-                                </button>
-                            </div>
-                            <div class="modal-body">
+            let user_is_authenticated = {{ request.user.is_authenticated|yesno:"true, false" }};
+            let html = ``;
+            if (user_is_authenticated === true) {
+                html = `
+                    <div class="modal" id="editEventModal" tabindex="-1" role="dialog">
+                        <div class="modal-dialog" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <button type="button" id="deleteEvent" class="btn btn-outline-danger mr-2" data-toggle="tooltip" data-placement="top" title="Delete Event">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                    <h5 class="modal-title">Edit Event</h5>
+                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                                <div class="modal-body">
 
-                                <form>
-                                    <div class="form-group d-flex ">
-                                        <label for="eventTitle" class="col-form-label mr-2">Title:</label>
-                                        <input type="text" class="form-control" value="${event.title}" id="eventTitle">
-                                    </div>
-                                    <input type="hidden" value="${event.id}" id="eventId">
-                                </form>
+                                    <form>
+                                        <div class="form-group d-flex ">
+                                            <label for="eventTitle" class="col-form-label mr-2">Title:</label>
+                                            <input type="text" class="form-control" value="${event.title}" id="eventTitle">
+                                        </div>
+                                        <input type="hidden" value="${event.id}" id="eventId">
+                                    </form>
 
-                            </div>
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-primary" id="saveEventChanges" >Save changes</button>
-                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-primary" id="saveEventChanges" >Save changes</button>
+                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                </div>`;
+                    </div>`;
+            }
+            else {
+                html = `
+                    <div class="modal" id="editEventModal" tabindex="-1" role="dialog">
+                        <div class="modal-dialog" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <button type="button" id="deleteEvent" class="btn btn-outline-danger mr-2" data-toggle="tooltip" data-placement="top" title="Delete Event">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                    <h5 class="modal-title">Edit Event</h5>
+                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                                <div class="modal-body">
+
+                                    <form>
+                                        <div class="form-group d-flex ">
+                                            <label for="eventTitle" class="col-form-label mr-2">Title:</label>
+                                            <input type="text" class="form-control" value="${event.title}" id="eventTitle">
+                                        </div>
+                                        <input type="hidden" value="${event.id}" id="eventId">
+                                    </form>
+
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>`;
+            }
 
             $('body').append(html);
 
