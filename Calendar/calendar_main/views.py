@@ -33,12 +33,20 @@ def save(request: WSGIRequest):
     response = {'isSuccessful': False}
 
     if request.method == "POST":
-        req_body = json.loads(request.body)
-        try:
-            events_for_update = []
-            events_for_create = []
+        all_events = models.Event.objects.filter(created_by_id=request.user.id)
+        data = json.loads(request.body)
+        events = data['events']
 
-            for event in req_body["events"]:
+        try:
+            valid_ids = [ev['id'] for ev in events]
+            for ev in all_events:
+                if ev.id not in valid_ids:
+                    ev.delete()
+
+            to_update = []
+            to_create = []
+
+            for event in events:
                 model = models.Event(
                     title=event["title"],
                     start_date=event["start"],
@@ -48,19 +56,15 @@ def save(request: WSGIRequest):
                 )
 
                 if not event["id"]:
-                    events_for_create.append(model)
+                    to_create.append(model)
                 else:
                     model.pk = event["id"]
-                    events_for_update.append(model)
+                    to_update.append(model)
 
-            models.Event.objects.bulk_update(events_for_update, ['title', 'start_date', 'end_date'])
-            models.Event.objects.bulk_create(events_for_create)
+            models.Event.objects.bulk_update(to_update, ['title', 'start_date', 'end_date'])
+            models.Event.objects.bulk_create(to_create)
 
         except Exception as exc:
-            # Print exception in terminal (since we have no logging)
-            traceback.format_exc(exc)
-            print(exc)
-            # Handle
             response["isSuccesful"] = False
             return JsonResponse(response)
 
@@ -71,7 +75,3 @@ def delete(request: WSGIRequest):
     model_id = json.loads(request.body)['id']
     models.Event.objects.filter(id=model_id).delete()
     return JsonResponse({})
-
-
-def edit(request: WSGIRequest):
-    return None

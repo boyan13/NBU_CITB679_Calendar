@@ -277,58 +277,16 @@
             $('#deleteEvent').one('click',() => {     
         
                 let id = $('#eventId').val();
+                event.remove();
+                $('#editEventModal').modal('hide');
+            })
 
-                $.ajax({
-                    url: '/delete/',
-                    type: 'POST',
-                    data: JSON.stringify({
-                        id: event.id
-                    }),
-                    dataType: 'json',
-                    success: function(result) {
-                        console.log(result)
-                        event.remove();
-                        $('#editEventModal').modal('hide');
-                    },
-                    error: function(err) {
-                        console.log(err);
-                        alert('There was an error while deleting the event. Please try again later!');
-                    },
-                    
-                });         
-            });
-
-            $('#saveEventChanges').one('click', () => {     
-                
-                let id = $('#eventId').val();
+            $('#saveEventChanges').one('click', () => {
                 let title = $('#eventTitle').val();
-
-                $.ajax({
-                    url: '/edit/',
-                    type: 'POST',
-                    data: {
-                        id: id,
-                        title: title,
-                    },
-                    dataType: 'json',
-                    success: function(result) {
-                        console.log(result)
-                        event.setProp( 'title', title );
-                        $('#editEventModal').modal('hide');
-                    },
-                    error: function(err) {
-                        console.log(err)
-                        alert('There was an error saving the changes.Please try again later!');
-                    },
-                    
-                });        
-
+                event.setProp( 'title', title );
+                $('#editEventModal').modal('hide');
             })
         }
-
-        
-
-
     });
     
     
