@@ -281,9 +281,9 @@
                 $.ajax({
                     url: '/delete/',
                     type: 'POST',
-                    data: {
-                        id: id
-                    },
+                    data: JSON.stringify({
+                        id: event.id
+                    }),
                     dataType: 'json',
                     success: function(result) {
                         console.log(result)

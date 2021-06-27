@@ -39,19 +39,19 @@ def save(request: WSGIRequest):
             events_for_create = []
 
             for event in req_body["events"]:
-                    eventModel = models.Event(
-                        title=event["title"],
-                        start_date=event["start"],
-                        end_date=None if (event["allDay"] is True) else event["end"],
-                        created_by=request.user,
-                        created_on=datetime.utcnow()
-                    )
+                model = models.Event(
+                    title=event["title"],
+                    start_date=event["start"],
+                    end_date=None if (event["allDay"] is True) else event["end"],
+                    created_by=request.user,
+                    created_on=datetime.utcnow()
+                )
 
-                    if not event["id"]:
-                        events_for_create.append(eventModel)
-                    else:
-                        eventModel.pk = event["id"]
-                        events_for_update.append(eventModel)
+                if not event["id"]:
+                    events_for_create.append(model)
+                else:
+                    model.pk = event["id"]
+                    events_for_update.append(model)
 
             models.Event.objects.bulk_update(events_for_update, ['title', 'start_date', 'end_date'])
             models.Event.objects.bulk_create(events_for_create)
@@ -68,7 +68,9 @@ def save(request: WSGIRequest):
 
 
 def delete(request: WSGIRequest):
-    return None
+    model_id = json.loads(request.body)['id']
+    models.Event.objects.filter(id=model_id).delete()
+    return JsonResponse({})
 
 
 def edit(request: WSGIRequest):
