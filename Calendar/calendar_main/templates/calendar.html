@@ -3,6 +3,7 @@
 {% block content %}
 
 <nav class="navbar navbar-expand-lg navbar-dark bg-primary justify-content-between">
+ {% csrf_token %}
   <a class="navbar-brand" href="#">Navbar</a>
   <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
     <span class="navbar-toggler-icon"></span>
@@ -42,6 +43,9 @@
             </div>
         </div>
         <div class="col-md-10">
+            <button type="button" id="saveEventBtn" class="btn btn-primary mb-2 ">
+                Save
+            </button>
             <div id="calendar"></div>
         </div>
    </div>
@@ -51,7 +55,24 @@
 <script>
 
     document.addEventListener('DOMContentLoaded', function() {
+
         let calendarEl = document.getElementById('calendar');
+        let eventsList = []
+
+        {% for event in calendar_events%}
+            eventsList.push(
+                {
+                    id: "{{event.id}}",
+                    title: "{{event.title}}",
+                    start: "{{event.start}}",
+                    end: "{{event.end}}",
+                    allDay: "{{event.allDay}}" == "True" ? true : false
+                }
+            )
+        {%endfor%}
+
+        //console.log(eventsList)
+
         let calendar = new FullCalendar.Calendar(calendarEl, {
             headerToolbar: {
                 start: 'prev,next,today', 
@@ -62,48 +83,7 @@
             height: '80%',
             themeSystem: 'bootstrap',
             nowIndicator: true,
-            events: [
-                {
-                    id: 'a',
-                    title: 'my event',
-                    start: '2021-06-09T10:00:00',
-                    end: '2021-06-09T16:00:00',
-                },{
-                    id: 'a',
-                    title: 'my event',
-                    start: '2021-06-09T10:00:00',
-                    end: '2021-06-09T16:00:00',
-                },{
-                    id: 'a',
-                    title: 'my event',
-                    start: '2021-06-09T10:00:00',
-                    end: '2021-06-09T16:00:00',
-                },{
-                    id: 'a',
-                    title: 'my event',
-                    start: '2021-06-09T10:00:00',
-                    end: '2021-06-09T16:00:00',
-                },{
-                    id: 'a',
-                    title: 'my event',
-                    start: '2021-06-09T10:00:00',
-                    end: '2021-06-09T16:00:00',
-                },
-                {
-                    start: '2021-06-07',
-                    display: 'background'
-                }
-            ],
-            /*events: {
-                url: 'POST URL',
-                method: 'POST',
-                extraParams: {
-                    email: 'test@test.com'
-                },
-                failure: function() {
-                    alert('There was an error while fetching events!');
-                },
-            },*/
+            events: eventsList,
             editable: true,
             droppable: true,
             views: {
@@ -115,42 +95,12 @@
                     dayMaxEventRows: 3,
                 }
             },
-            drop: function(info){
-                info.draggedEl.parentNode.removeChild(info.draggedEl);
-                let eventObject = {
-                    title: info.draggedEl.children[0].textContent,
-                    start: info.dateStr
-                };
-                console.log(info);
-                console.log(eventObject);
-                
-                /*$.ajax({
-                    url: 'POST URL',
-                    type: 'POST',
-                    data: {
-                        event: eventObject,
-                    },
-                    dataType: 'json',
-                    success: function(result) {
-                       console.log.log(result)
-                    },
-                    error: function() {
-                        alert('There was an error while addeing event!');
-                    },
-                    
-                });*/
-            },
-            eventResize: function(eventResizeInfo){
-                console.log(eventResizeInfo);
-            },
-            eventDrop: function(info){
-                console.log(info);
-            },
-            dateClick: function(dateClickInfo){
-                console.log(dateClickInfo);
+            eventClick: function( eventClickInfo ) { 
+                //console.log(eventClickInfo.event);
+                eventEditModal(eventClickInfo.event);
             }
-
         });
+
         calendar.render();
 
         let draggableEl = document.getElementById('mydraggable');
@@ -158,9 +108,10 @@
         new FullCalendar.Draggable(draggableEl, {
             itemSelector: '.fc-event',
             eventData: function(eventEl) {
-                return {
-                    title: eventEl.innerText
+                let event ={
+                    title: eventEl.innerText,
                 };
+                return event;
             }
         });
 
@@ -175,6 +126,139 @@
             }
             
         })
+
+        $('#saveEventBtn').click(() => {     
+            let eventObjects = calendar.getEvents().map(e=> {
+                let event = {
+                    id: e.id,
+                    start: e.startStr,
+                    end: e.endStr,
+                    title: e.title,
+                    allDay: e.allDay,
+                    dayOfTheWeek: e.startStr
+                }
+                return event;
+            })
+
+            console.log(eventObjects);
+
+            $.ajax({
+                    url: '/save/',
+                    type: 'POST',
+                    data: JSON.stringify({
+                        events: eventObjects
+                    }),
+                    contentType: 'application/json; charset=utf-8',
+                    dataType: 'json',
+                    success: function(result) {
+                       console.log(result)
+                    },
+                    error: function(err) {
+                        console.log(err)
+                        alert('There was an error while adding event! Please try again later!');
+                    },
+                    
+                });         
+        })
+
+        function eventEditModal(event){
+
+            let html = `
+                <div class="modal" id="editEventModal" tabindex="-1" role="dialog">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <button type="button" id="deleteEvent" class="btn btn-outline-danger mr-2" data-toggle="tooltip" data-placement="top" title="Delete Event">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                                <h5 class="modal-title">Edit Event</h5>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <div class="modal-body">
+
+                                <form>
+                                    <div class="form-group d-flex ">
+                                        <label for="eventTitle" class="col-form-label mr-2">Title:</label>
+                                        <input type="text" class="form-control" value="${event.title}" id="eventTitle">
+                                    </div>
+                                    <input type="hidden" value="${event.id}" id="eventId">
+                                </form>
+
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-primary" id="saveEventChanges" >Save changes</button>
+                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>`;
+
+            $('body').append(html);
+
+            $('#editEventModal').modal('show');
+
+            $('#editEventModal').on('hidden.bs.modal', function(e){
+                $(this).remove()
+            })
+
+            $('[data-toggle="tooltip"]').tooltip();
+
+            $('#deleteEvent').one('click',() => {     
+        
+                let id = $('#eventId').val();
+
+                $.ajax({
+                    url: '/delete/',
+                    type: 'POST',
+                    data: {
+                        id: id
+                    },
+                    dataType: 'json',
+                    success: function(result) {
+                        console.log(result)
+                        event.remove();
+                        $('#editEventModal').modal('hide');
+                    },
+                    error: function(err) {
+                        console.log(err);
+                        alert('There was an error while deleting the event. Please try again later!');
+                    },
+                    
+                });         
+            });
+
+            $('#saveEventChanges').one('click', () => {     
+                
+                let id = $('#eventId').val();
+                let title = $('#eventTitle').val();
+
+                $.ajax({
+                    url: '/edit/',
+                    type: 'POST',
+                    data: {
+                        id: id,
+                        title: title,
+                    },
+                    dataType: 'json',
+                    success: function(result) {
+                        console.log(result)
+                        event.setProp( 'title', title );
+                        $('#editEventModal').modal('hide');
+                    },
+                    error: function(err) {
+                        console.log(err)
+                        alert('There was an error saving the changes.Please try again later!');
+                    },
+                    
+                });        
+
+            })
+        }
+
+        
+
 
     });
     
