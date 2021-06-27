@@ -1,17 +1,13 @@
 import traceback
 import json
+from datetime import datetime
 
 from django.shortcuts import render
 from django.http import JsonResponse
-
 from django.core.handlers.wsgi import WSGIRequest
-# from django.urls import reverse
-from django.views.decorators.csrf import csrf_exempt
-# from django.contrib.auth.decorators import login_required
 
 from . import models
-from django.core import serializers
-from datetime import datetime
+
 
 def calendar(request: WSGIRequest):
     context = {'calendar_events': []}
@@ -32,33 +28,34 @@ def calendar(request: WSGIRequest):
 
     return render(request, "calendar.html", context)
 
-@csrf_exempt
+
 def save(request: WSGIRequest):
     response = {'isSuccessful': False}
 
     if request.method == "POST":
         req_body = json.loads(request.body)
         try:
-            eventsForUpdate = []
-            eventsForCreate = []
+            events_for_update = []
+            events_for_create = []
 
             for event in req_body["events"]:
                     eventModel = models.Event(
                         title=event["title"],
                         start_date=event["start"],
-                        end_date= None if (event["allDay"] is True) else event["end"],
-                        created_by = request.user,
+                        end_date=None if (event["allDay"] is True) else event["end"],
+                        created_by=request.user,
                         created_on=datetime.utcnow()
                     )
 
                     if not event["id"]:
-                        eventsForCreate.append(eventModel)
+                        events_for_create.append(eventModel)
                     else:
                         eventModel.pk = event["id"]
-                        eventsForUpdate.append(eventModel)
+                        events_for_update.append(eventModel)
 
-            models.Event.objects.bulk_update(eventsForUpdate, ['title', 'start_date', 'end_date'])
-            models.Event.objects.bulk_create(eventsForCreate)
+            models.Event.objects.bulk_update(events_for_update, ['title', 'start_date', 'end_date'])
+            models.Event.objects.bulk_create(events_for_create)
+
         except Exception as exc:
             # Print exception in terminal (since we have no logging)
             traceback.format_exc(exc)
@@ -68,3 +65,11 @@ def save(request: WSGIRequest):
             return JsonResponse(response)
 
     return JsonResponse({})
+
+
+def delete(request: WSGIRequest):
+    return None
+
+
+def edit(request: WSGIRequest):
+    return None
