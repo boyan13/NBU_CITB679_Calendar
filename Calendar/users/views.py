@@ -17,9 +17,12 @@ def register(request):
 
         form = UserCreationFormWithEmail(request.POST)
 
-
         if form.is_valid():
-            user = form.save()
+            # first select the proper backend for user creation
+            user = form.save(commit=False)
+            user.backend = "django.contrib.auth.backends.ModelBackend"
+            user.save()
+
             login(request, user)
             return redirect(reverse("calendar"))
         else:

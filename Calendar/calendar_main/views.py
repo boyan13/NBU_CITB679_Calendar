@@ -1,17 +1,13 @@
 import traceback
 import json
+from datetime import datetime
 
 from django.shortcuts import render
 from django.http import JsonResponse
-
 from django.core.handlers.wsgi import WSGIRequest
-# from django.urls import reverse
-from django.views.decorators.csrf import csrf_exempt
-# from django.contrib.auth.decorators import login_required
 
 from . import models
-from django.core import serializers
-from datetime import datetime
+
 
 def calendar(request: WSGIRequest):
     context = {'calendar_events': []}
@@ -32,39 +28,50 @@ def calendar(request: WSGIRequest):
 
     return render(request, "calendar.html", context)
 
-@csrf_exempt
+
 def save(request: WSGIRequest):
     response = {'isSuccessful': False}
 
     if request.method == "POST":
-        req_body = json.loads(request.body)
+        all_events = models.Event.objects.filter(created_by_id=request.user.id)
+        data = json.loads(request.body)
+        events = data['events']
+
         try:
-            eventsForUpdate = []
-            eventsForCreate = []
+            valid_ids = [ev['id'] for ev in events]
+            for ev in all_events:
+                if ev.id not in valid_ids:
+                    ev.delete()
 
-            for event in req_body["events"]:
-                    eventModel = models.Event(
-                        title=event["title"],
-                        start_date=event["start"],
-                        end_date= None if (event["allDay"] is True) else event["end"],
-                        created_by = request.user,
-                        created_on=datetime.utcnow()
-                    )
+            to_update = []
+            to_create = []
 
-                    if not event["id"]:
-                        eventsForCreate.append(eventModel)
-                    else:
-                        eventModel.pk = event["id"]
-                        eventsForUpdate.append(eventModel)
+            for event in events:
+                model = models.Event(
+                    title=event["title"],
+                    start_date=event["start"],
+                    end_date=None if (event["allDay"] is True) else event["end"],
+                    created_by=request.user,
+                    created_on=datetime.utcnow()
+                )
 
-            models.Event.objects.bulk_update(eventsForUpdate, ['title', 'start_date', 'end_date'])
-            models.Event.objects.bulk_create(eventsForCreate)
+                if not event["id"]:
+                    to_create.append(model)
+                else:
+                    model.pk = event["id"]
+                    to_update.append(model)
+
+            models.Event.objects.bulk_update(to_update, ['title', 'start_date', 'end_date'])
+            models.Event.objects.bulk_create(to_create)
+
         except Exception as exc:
-            # Print exception in terminal (since we have no logging)
-            traceback.format_exc(exc)
-            print(exc)
-            # Handle
             response["isSuccesful"] = False
             return JsonResponse(response)
 
+    return JsonResponse({})
+
+
+def delete(request: WSGIRequest):
+    model_id = json.loads(request.body)['id']
+    models.Event.objects.filter(id=model_id).delete()
     return JsonResponse({})

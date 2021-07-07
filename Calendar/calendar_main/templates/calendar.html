@@ -43,9 +43,11 @@
             </div>
         </div>
         <div class="col-md-10">
+            {% if user.is_authenticated %}
             <button type="button" id="saveEventBtn" class="btn btn-primary mb-2 ">
                 Save
             </button>
+            {% endif %}
             <div id="calendar"></div>
         </div>
    </div>
@@ -55,6 +57,37 @@
 <script>
 
     document.addEventListener('DOMContentLoaded', function() {
+
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    // Does this cookie string begin with the name we want?
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        const csrftoken = getCookie('csrftoken');
+
+        function csrfSafeMethod(method) {
+            // these HTTP methods do not require CSRF protection
+            return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+        }
+
+        $.ajaxSetup({
+            beforeSend: function(xhr, settings) {
+                if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+                    xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                }
+            }
+        });
 
         let calendarEl = document.getElementById('calendar');
         let eventsList = []
@@ -163,37 +196,73 @@
 
         function eventEditModal(event){
 
-            let html = `
-                <div class="modal" id="editEventModal" tabindex="-1" role="dialog">
-                    <div class="modal-dialog" role="document">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <button type="button" id="deleteEvent" class="btn btn-outline-danger mr-2" data-toggle="tooltip" data-placement="top" title="Delete Event">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                                <h5 class="modal-title">Edit Event</h5>
-                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                    <span aria-hidden="true">&times;</span>
-                                </button>
-                            </div>
-                            <div class="modal-body">
+            let user_is_authenticated = {{ request.user.is_authenticated|yesno:"true, false" }};
+            let html = ``;
+            if (user_is_authenticated === true) {
+                html = `
+                    <div class="modal" id="editEventModal" tabindex="-1" role="dialog">
+                        <div class="modal-dialog" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <button type="button" id="deleteEvent" class="btn btn-outline-danger mr-2" data-toggle="tooltip" data-placement="top" title="Delete Event">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                    <h5 class="modal-title">Edit Event</h5>
+                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                                <div class="modal-body">
 
-                                <form>
-                                    <div class="form-group d-flex ">
-                                        <label for="eventTitle" class="col-form-label mr-2">Title:</label>
-                                        <input type="text" class="form-control" value="${event.title}" id="eventTitle">
-                                    </div>
-                                    <input type="hidden" value="${event.id}" id="eventId">
-                                </form>
+                                    <form>
+                                        <div class="form-group d-flex ">
+                                            <label for="eventTitle" class="col-form-label mr-2">Title:</label>
+                                            <input type="text" class="form-control" value="${event.title}" id="eventTitle">
+                                        </div>
+                                        <input type="hidden" value="${event.id}" id="eventId">
+                                    </form>
 
-                            </div>
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-primary" id="saveEventChanges" >Save changes</button>
-                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-primary" id="saveEventChanges" >Save changes</button>
+                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                </div>`;
+                    </div>`;
+            }
+            else {
+                html = `
+                    <div class="modal" id="editEventModal" tabindex="-1" role="dialog">
+                        <div class="modal-dialog" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <button type="button" id="deleteEvent" class="btn btn-outline-danger mr-2" data-toggle="tooltip" data-placement="top" title="Delete Event">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                    <h5 class="modal-title">Edit Event</h5>
+                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                                <div class="modal-body">
+
+                                    <form>
+                                        <div class="form-group d-flex ">
+                                            <label for="eventTitle" class="col-form-label mr-2">Title:</label>
+                                            <input type="text" class="form-control" value="${event.title}" id="eventTitle">
+                                        </div>
+                                        <input type="hidden" value="${event.id}" id="eventId">
+                                    </form>
+
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>`;
+            }
 
             $('body').append(html);
 
@@ -208,58 +277,16 @@
             $('#deleteEvent').one('click',() => {     
         
                 let id = $('#eventId').val();
+                event.remove();
+                $('#editEventModal').modal('hide');
+            })
 
-                $.ajax({
-                    url: '/delete/',
-                    type: 'POST',
-                    data: {
-                        id: id
-                    },
-                    dataType: 'json',
-                    success: function(result) {
-                        console.log(result)
-                        event.remove();
-                        $('#editEventModal').modal('hide');
-                    },
-                    error: function(err) {
-                        console.log(err);
-                        alert('There was an error while deleting the event. Please try again later!');
-                    },
-                    
-                });         
-            });
-
-            $('#saveEventChanges').one('click', () => {     
-                
-                let id = $('#eventId').val();
+            $('#saveEventChanges').one('click', () => {
                 let title = $('#eventTitle').val();
-
-                $.ajax({
-                    url: '/edit/',
-                    type: 'POST',
-                    data: {
-                        id: id,
-                        title: title,
-                    },
-                    dataType: 'json',
-                    success: function(result) {
-                        console.log(result)
-                        event.setProp( 'title', title );
-                        $('#editEventModal').modal('hide');
-                    },
-                    error: function(err) {
-                        console.log(err)
-                        alert('There was an error saving the changes.Please try again later!');
-                    },
-                    
-                });        
-
+                event.setProp( 'title', title );
+                $('#editEventModal').modal('hide');
             })
         }
-
-        
-
-
     });
     
     
