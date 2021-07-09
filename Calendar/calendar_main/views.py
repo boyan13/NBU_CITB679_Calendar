@@ -69,9 +69,3 @@ def save(request: WSGIRequest):
             return JsonResponse(response)
 
     return JsonResponse({})
-
-
-def delete(request: WSGIRequest):
-    model_id = json.loads(request.body)['id']
-    models.Event.objects.filter(id=model_id).delete()
-    return JsonResponse({})
