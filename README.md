@@ -2,7 +2,7 @@
 
 This is a calendar application created using the Django Framework and fullcalendar.io frontend library.
 
-![calendar image](preview.png)
+![calendar image](preview_img.png)
 
 **Technologies:** 
 
