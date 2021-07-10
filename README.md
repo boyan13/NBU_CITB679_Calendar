@@ -12,7 +12,7 @@ This is a calendar application created using the Django Framework and fullcalend
 * python-dotenv
 * social-auth-app-django
 
-*Frontend 
+*Frontend *
 * Bootstrap4
 * gullcalendar.io
 * Ajax
